@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Multiplicação</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 600px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    input {
+      width: 80px;
+      padding: 8px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    button {
+      display: block;
+      margin: 20px auto 0;
+      padding: 12px 30px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    #result {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Lista de Multiplicação</h1>
+    <div id="questions"></div>
+    <button onclick="checkAnswers()">Verificar</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const numQuestions = 5;
+    const questions = [];
+    const answers = [];
+
+    function generateQuestions() {
+      const container = document.getElementById('questions');
+      for (let i = 0; i < numQuestions; i++) {
+        const a = Math.floor(Math.random() * 10) + 1;
+        const b = Math.floor(Math.random() * 10) + 1;
+        questions.push({a, b});
+        answers.push(a * b);
+
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+          ${i+1}) Quanto é ${a} × ${b}? 
+          <input type="number" id="answer${i}">
+        `;
+        container.appendChild(div);
+      }
+    }
+
+    function checkAnswers() {
+      let score = 0;
+      for (let i = 0; i < numQuestions; i++) {
+        const input = document.getElementById('answer'+i);
+        const userAnswer = parseInt(input.value);
+        if (userAnswer === answers[i]) {
+          input.style.background = '#c8e6c9'; // verde claro
+          score++;
+        } else {
+          input.style.background = '#ffcdd2'; // vermelho claro
+        }
+      }
+      document.getElementById('result').textContent = `Você acertou ${score} de ${numQuestions}`;
+    }
+
+    generateQuestions();
+  </script>
+</body>
+</html>
