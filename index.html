@@ -3,106 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista de Multiplicação</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f3f3;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .container {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 600px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .question {
-      margin-bottom: 20px;
-    }
-    input {
-      width: 80px;
-      padding: 8px;
-      font-size: 16px;
-      margin-left: 10px;
-    }
-    button {
-      display: block;
-      margin: 20px auto 0;
-      padding: 12px 30px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #388e3c;
-    }
-    #result {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 20px;
-    }
-  </style>
+  <title>EasyMath</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Lista de Multiplicação</h1>
-    <div id="questions"></div>
-    <button onclick="checkAnswers()">Verificar</button>
-    <div id="result"></div>
+  <h1>EasyMath - Treino de Matemática</h1>
+  <div id="auth">
+    <button onclick="loginGoogle()">Entrar com Google</button>
+    <button onclick="loginEmail()">Entrar com E-mail e Senha</button>
+  </div>
+  <div id="user" style="display:none;">
+    <p id="welcome"></p>
+    <button onclick="logout()">Sair</button>
+    <div id="progress"></div>
   </div>
 
-  <script>
-    const numQuestions = 5;
-    const questions = [];
-    const answers = [];
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
+      from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } 
+      from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    function generateQuestions() {
-      const container = document.getElementById('questions');
-      for (let i = 0; i < numQuestions; i++) {
-        const a = Math.floor(Math.random() * 10) + 1;
-        const b = Math.floor(Math.random() * 10) + 1;
-        questions.push({a, b});
-        answers.push(a * b);
+    const firebaseConfig = {
+      apiKey: "AIzaSyDidF4TqGRP3Jb4Ej5VoraYMrcdZw_-5-Q",
+      authDomain: "easymath-44877.firebaseapp.com",
+      projectId: "easymath-44877",
+      storageBucket: "easymath-44877.firebasestorage.app",
+      messagingSenderId: "966021812536",
+      appId: "1:966021812536:web:0e9ac833aeb0829b71b1cd",
+      measurementId: "G-KJ0P3WCJTM"
+    };
 
-        const div = document.createElement('div');
-        div.className = 'question';
-        div.innerHTML = `
-          ${i+1}) Quanto é ${a} × ${b}? 
-          <input type="number" id="answer${i}">
-        `;
-        container.appendChild(div);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function loginGoogle() {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    }
+
+    async function loginEmail() {
+      const email = prompt("Digite seu e-mail:");
+      const senha = prompt("Digite sua senha:");
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+      } catch(e) {
+        alert("Erro: "+ e.message);
       }
     }
 
-    function checkAnswers() {
-      let score = 0;
-      for (let i = 0; i < numQuestions; i++) {
-        const input = document.getElementById('answer'+i);
-        const userAnswer = parseInt(input.value);
-        if (userAnswer === answers[i]) {
-          input.style.background = '#c8e6c9'; // verde claro
-          score++;
-        } else {
-          input.style.background = '#ffcdd2'; // vermelho claro
-        }
-      }
-      document.getElementById('result').textContent = `Você acertou ${score} de ${numQuestions}`;
+    function logout() {
+      signOut(auth);
     }
 
-    generateQuestions();
+    async function carregarProgresso(user) {
+      const ref = doc(db, "progresso", user.uid);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        document.getElementById('progress').innerText = 
+          `✅ ${user.displayName || user.email} completou ${snap.data().completos} de 80 níveis`;
+      } else {
+        // inicia o progresso
+        await setDoc(ref, { completos: 0 });
+        document.getElementById('progress').innerText = 
+          `✅ ${user.displayName || user.email} completou 0 de 80 níveis`;
+      }
+    }
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('user').style.display = 'block';
+        document.getElementById('welcome').innerText = `Olá, ${user.displayName || user.email}`;
+        carregarProgresso(user);
+      } else {
+        document.getElementById('auth').style.display = 'block';
+        document.getElementById('user').style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
